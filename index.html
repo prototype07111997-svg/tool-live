@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>LIVE Tool Dashboard</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #f5f6fa;
+    padding: 20px;
+}
+
+h2 {
+    margin-bottom: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+th {
+    background: #4a69bd;
+    color: white;
+    padding: 10px;
+}
+
+td {
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+}
+
+.progress {
+    width: 100%;
+    background: #eee;
+    border-radius: 20px;
+    overflow: hidden;
+    height: 20px;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #2ecc71, #27ae60);
+    width: 0%;
+    transition: 0.5s;
+}
+
+.status {
+    padding: 5px 10px;
+    border-radius: 20px;
+    color: white;
+    font-size: 13px;
+}
+
+.done { background: #2ecc71; }
+.running { background: #3498db; }
+.waiting { background: #f39c12; }
+
+</style>
+</head>
+
+<body>
+
+<h2>📊 LIVE Tool - Trạng thái chạy</h2>
+
+<table>
+<thead>
+<tr>
+    <th>#</th>
+    <th>Người dùng</th>
+    <th>Tiến độ</th>
+    <th>Trạng thái</th>
+</tr>
+</thead>
+
+<tbody id="table-data"></tbody>
+</table>
+
+<script>
+
+async function loadData() {
+    let res = await fetch("http://localhost:5000/data");
+    let data = await res.json();
+
+    let html = "";
+
+    data.forEach((item, index) => {
+
+        let percent = Math.min((item.current / item.total) * 100, 100);
+
+        let statusClass = "";
+        let statusText = "";
+
+        if (item.status === "xong") {
+            statusClass = "done";
+            statusText = "✔ Xong";
+        } else if (item.status === "dang_chay") {
+            statusClass = "running";
+            statusText = "🔄 Đang chạy";
+        } else {
+            statusClass = "waiting";
+            statusText = "⏳ Chờ";
+        }
+
+        html += `
+        <tr>
+            <td>${index + 1}</td>
+            <td>${item.user}</td>
+            <td>
+                <div class="progress">
+                    <div class="progress-bar" style="width:${percent}%"></div>
+                </div>
+                ${item.current}/${item.total}
+            </td>
+            <td><span class="status ${statusClass}">${statusText}</span></td>
+        </tr>
+        `;
+    });
+
+    document.getElementById("table-data").innerHTML = html;
+}
+
+setInterval(loadData, 2000);
+
+</script>
+
+</body>
+</html>
